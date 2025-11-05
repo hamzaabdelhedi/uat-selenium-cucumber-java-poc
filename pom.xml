@@ -94,6 +94,7 @@
                     </excludes>
                     <systemPropertyVariables>
                         <browser>${browser}</browser>
+                        <containerizedBrowser>${containerizedBrowser}</containerizedBrowser>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
@@ -114,6 +115,7 @@
                 <configuration>
                     <systemPropertyVariables>
                         <browser>${browser}</browser>
+                        <containerizedBrowser>${containerizedBrowser}</containerizedBrowser>
                     </systemPropertyVariables>
                     <includes>
                         <include>**/*IT.java</include>

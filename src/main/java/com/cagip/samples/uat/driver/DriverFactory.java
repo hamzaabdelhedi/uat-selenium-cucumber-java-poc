@@ -44,30 +44,46 @@ public class DriverFactory {
      */
     private static WebDriver createDriver() {
         String browser = System.getProperty("browser", DEFAULT_BROWSER).toLowerCase();
+        boolean containerizedBrowser = Boolean.parseBoolean(System.getProperty("containerizedBrowser", "false"));
         
         WebDriver newDriver;
         
         switch (browser) {
             case "chrome":
-                WebDriverManager.chromedriver().setup();
-                ChromeOptions chromeOptions = new ChromeOptions();
-                chromeOptions.addArguments("--start-maximized");
-                chromeOptions.addArguments("--disable-notifications");
-                newDriver = new ChromeDriver(chromeOptions);
+                if(containerizedBrowser){
+                    newDriver = WebDriverManager.chromedriver().browserInDocker().create();
+                }
+                else{
+                    WebDriverManager.chromedriver().setup();
+                    ChromeOptions chromeOptions = new ChromeOptions();
+                    chromeOptions.addArguments("--start-maximized");
+                    chromeOptions.addArguments("--disable-notifications");
+                    newDriver = new ChromeDriver(chromeOptions);
+                }
                 break;
                 
             case "firefox":
-                WebDriverManager.firefoxdriver().setup();
-                FirefoxOptions firefoxOptions = new FirefoxOptions();
-                firefoxOptions.addArguments("--start-maximized");
-                newDriver = new FirefoxDriver(firefoxOptions);
+                if(containerizedBrowser){
+                    newDriver = WebDriverManager.firefoxdriver().browserInDocker().create();
+                }
+                else{
+                    WebDriverManager.firefoxdriver().setup();
+                    FirefoxOptions firefoxOptions = new FirefoxOptions();
+                    firefoxOptions.addArguments("--start-maximized");
+                    newDriver = new FirefoxDriver(firefoxOptions);
+                }
                 break;
                 
             case "edge":
-                WebDriverManager.edgedriver().setup();
-                EdgeOptions edgeOptions = new EdgeOptions();
-                edgeOptions.addArguments("--start-maximized");
-                newDriver = new EdgeDriver(edgeOptions);
+                if(containerizedBrowser){
+                    newDriver = WebDriverManager.edgedriver().browserInDocker().create();
+                }
+                else{
+                    WebDriverManager.edgedriver().setup();
+                    EdgeOptions edgeOptions = new EdgeOptions();
+                    edgeOptions.addArguments("--start-maximized");
+                    newDriver = new EdgeDriver(edgeOptions);
+                }
                 break;
                 
             default:
