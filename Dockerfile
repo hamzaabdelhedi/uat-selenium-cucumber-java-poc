@@ -1,71 +1,54 @@
-# Dockerfile for Maven + Browsers
-# This image contains Maven 3.9.10, Java 24, Chrome, Firefox, and Edge
+# Base image: Maven + JDK 17 (Debian Bookworm)
+FROM maven:3.9.9-eclipse-temurin-17
 
-FROM eclipse-temurin:24-jdk
+ENV DEBIAN_FRONTEND=noninteractive
+WORKDIR /usr/src/app
 
-# Set environment variables
-ENV MAVEN_VERSION=3.9.10
-ENV MAVEN_HOME=/opt/maven
-ENV PATH="${MAVEN_HOME}/bin:${PATH}"
+# Install required tools and browsers
+RUN apt-get update && \
+    apt-get install -y \
+        wget curl gnupg ca-certificates apt-transport-https software-properties-common \
+        bzip2 \
+    && mkdir -p /etc/apt/keyrings && \
+    \
+    # ----------------------------------------------------
+    # 🧭 Google Chrome
+    # ----------------------------------------------------
+    wget -q -O- https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /etc/apt/keyrings/google-chrome.gpg && \
+    echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
+        > /etc/apt/sources.list.d/google-chrome.list && \
+    \
+    # ----------------------------------------------------
+    # 🪟 Microsoft Edge
+    # ----------------------------------------------------
+    wget -q -O- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft-edge.gpg && \
+    echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft-edge.gpg] https://packages.microsoft.com/repos/edge stable main" \
+        > /etc/apt/sources.list.d/microsoft-edge.list && \
+    \
+    # ----------------------------------------------------
+    # Install Chrome and Edge
+    # ----------------------------------------------------
+    apt-get update && \
+    apt-get install -y google-chrome-stable microsoft-edge-stable && \
+    \
+    # ----------------------------------------------------
+    # 🦊 Install Firefox (from Mozilla directly)
+    # ----------------------------------------------------
+    wget -O /tmp/firefox.tar.xz "https://download.mozilla.org/?product=firefox-latest&os=linux64&lang=en-US" && \
+    tar xvf /tmp/firefox.tar.xz -C /opt/ && \
+    ln -s /opt/firefox/firefox /usr/local/bin/firefox && \
+    rm /tmp/firefox.tar.xz && \
+    \
+    # ----------------------------------------------------
+    # Cleanup
+    # ----------------------------------------------------
+    apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
-# Install necessary dependencies
-RUN apt-get update && apt-get install -y \
-    wget \
-    curl \
-    gnupg \
-    unzip \
-    xvfb \
-    libxi6 \
-    libgconf-2-4 \
-    libnss3 \
-    libxss1 \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libgtk-3-0 \
-    fonts-liberation \
-    libappindicator3-1 \
-    xdg-utils \
-    apt-transport-https \
-    software-properties-common \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Maven
-RUN wget https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz -P /tmp \
-    && tar xf /tmp/apache-maven-${MAVEN_VERSION}-bin.tar.gz -C /opt \
-    && ln -s /opt/apache-maven-${MAVEN_VERSION} /opt/maven \
-    && rm /tmp/apache-maven-${MAVEN_VERSION}-bin.tar.gz
-
-# Install Google Chrome
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Firefox
-RUN apt-get update && apt-get install -y firefox-esr \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Microsoft Edge
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/microsoft.gpg \
-    && echo "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge.list \
-    && apt-get update \
-    && apt-get install -y microsoft-edge-stable \
-    && rm -rf /var/lib/apt/lists/*
-
-# Verify installations
-RUN mvn --version && \
+# Print installed versions
+RUN echo "✅ Installed browsers:" && \
     google-chrome --version && \
+    microsoft-edge --version && \
     firefox --version && \
-    microsoft-edge --version
-
-# Set working directory
-WORKDIR /workspace
-
-# Create a non-root user for running tests
-RUN useradd -m -u 1000 testuser && \
-    chown -R testuser:testuser /workspace
-
-USER testuser
+    mvn -v
 
 CMD ["/bin/bash"]
