@@ -20,7 +20,16 @@ public class Hooks {
     public void setUp(Scenario scenario) {
         System.out.println("Starting scenario: " + scenario.getName());
         String browser = System.getProperty("browser", "chrome");
+        String remoteBrowser = System.getProperty("remote.browser", "");
+        String autoProvisioned = System.getProperty("auto.provisioned.browser", "false");
+        
         System.out.println("Browser selected: " + browser);
+        if (!remoteBrowser.isEmpty()) {
+            System.out.println("Using remote browser at: " + remoteBrowser);
+        }
+        if (Boolean.parseBoolean(autoProvisioned)) {
+            System.out.println("Using Docker-provisioned browser");
+        }
         
         // Initialize driver through singleton
         driver = DriverFactory.getDriver();

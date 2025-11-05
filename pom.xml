@@ -22,7 +22,11 @@
         <webdrivermanager.version>5.9.2</webdrivermanager.version>
         <junit.version>5.11.3</junit.version>
         <!-- Default browser value -->
-        <browser>chrome</browser>
+        <browser>firefox</browser>
+        <!-- Remote browser URL (optional) -->
+        <remote.browser></remote.browser>
+        <!-- Auto provisioned browser in Docker (default: false) -->
+        <auto.provisioned.browser>false</auto.provisioned.browser>
     </properties>
 
     <dependencies>
@@ -94,7 +98,8 @@
                     </excludes>
                     <systemPropertyVariables>
                         <browser>${browser}</browser>
-                        <containerizedBrowser>${containerizedBrowser}</containerizedBrowser>
+                        <remote.browser>${remote.browser}</remote.browser>
+                        <auto.provisioned.browser>${auto.provisioned.browser}</auto.provisioned.browser>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
@@ -115,7 +120,8 @@
                 <configuration>
                     <systemPropertyVariables>
                         <browser>${browser}</browser>
-                        <containerizedBrowser>${containerizedBrowser}</containerizedBrowser>
+                        <remote.browser>${remote.browser}</remote.browser>
+                        <auto.provisioned.browser>${auto.provisioned.browser}</auto.provisioned.browser>
                     </systemPropertyVariables>
                     <includes>
                         <include>**/*IT.java</include>
