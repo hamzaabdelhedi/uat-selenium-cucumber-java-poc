@@ -1,0 +1,194 @@
+# GitLab CI/CD Pipeline for UAT Automation Tests
+# Two stages: Local browser execution and Remote browser execution
+
+stages:
+  - test-local
+  - test-remote
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
+
+
+#######################################
+# Stage 1: Local Browser Execution
+# Uses custom image with Maven + Browsers
+#######################################
+
+test-local-chrome:
+  stage: test-local
+  image: your-registry/maven-browsers:latest  # Replace with your Docker registry
+  script:
+    - echo "Running tests with local Chrome browser"
+    - mvn clean verify -Dbrowser=chrome 
+  artifacts:
+    when: always
+    paths:
+      - target/cucumber-reports/
+      - target/surefire-reports/
+      - target/failsafe-reports/
+    reports:
+      junit:
+        - target/surefire-reports/TEST-*.xml
+        - target/failsafe-reports/TEST-*.xml
+    expire_in: 1 week
+  allow_failure: false
+ 
+test-local-firefox:
+  stage: test-local
+  image: your-registry/maven-browsers:latest  # Replace with your Docker registry
+  script:
+    - echo "Running tests with local Firefox browser"
+    - mvn clean verify -Dbrowser=firefox 
+  artifacts:
+    when: always
+    paths:
+      - target/cucumber-reports/
+      - target/surefire-reports/
+      - target/failsafe-reports/
+    reports:
+      junit:
+        - target/surefire-reports/TEST-*.xml
+        - target/failsafe-reports/TEST-*.xml
+    expire_in: 1 week
+  allow_failure: false
+ 
+test-local-edge:
+  stage: test-local
+  image: your-registry/maven-browsers:latest  # Replace with your Docker registry
+  script:
+    - echo "Running tests with local Edge browser"
+    - mvn clean verify -Dbrowser=edge 
+  artifacts:
+    when: always
+    paths:
+      - target/cucumber-reports/
+      - target/surefire-reports/
+      - target/failsafe-reports/
+    reports:
+      junit:
+        - target/surefire-reports/TEST-*.xml
+        - target/failsafe-reports/TEST-*.xml
+    expire_in: 1 week
+  allow_failure: false
+ 
+#######################################
+# Stage 2: Remote Browser Execution
+# Uses Selenium standalone services
+#######################################
+
+test-remote-chrome:
+  stage: test-remote
+  image: maven:3.9.10-eclipse-temurin-24
+  services:
+    - name: selenium/standalone-chrome:latest
+      alias: selenium-chrome
+  variables:
+    SELENIUM_HOST: selenium-chrome
+    SELENIUM_PORT: 4444
+  script:
+    - echo "Running tests with remote Chrome browser via Selenium Grid"
+    - echo "Selenium Grid URL: http://$SELENIUM_HOST:$SELENIUM_PORT"
+    # Wait for Selenium Grid to be ready
+    - |
+      echo "Waiting for Selenium Grid to be ready..."
+      for i in {1..30}; do
+        if curl -s http://$SELENIUM_HOST:$SELENIUM_PORT/status > /dev/null; then
+          echo "Selenium Grid is ready!"
+          break
+        fi
+        echo "Waiting... ($i/30)"
+        sleep 2
+      done
+    - curl -s http://$SELENIUM_HOST:$SELENIUM_PORT/status | head -20
+    - mvn clean verify -Dbrowser=chrome -Dremote.browser=http://$SELENIUM_HOST:$SELENIUM_PORT 
+  artifacts:
+    when: always
+    paths:
+      - target/cucumber-reports/
+      - target/surefire-reports/
+      - target/failsafe-reports/
+    reports:
+      junit:
+        - target/surefire-reports/TEST-*.xml
+        - target/failsafe-reports/TEST-*.xml
+    expire_in: 1 week
+  allow_failure: false
+ 
+test-remote-firefox:
+  stage: test-remote
+  image: maven:3.9.10-eclipse-temurin-24
+  services:
+    - name: selenium/standalone-firefox:latest
+      alias: selenium-firefox
+  variables:
+    SELENIUM_HOST: selenium-firefox
+    SELENIUM_PORT: 4444
+  script:
+    - echo "Running tests with remote Firefox browser via Selenium Grid"
+    - echo "Selenium Grid URL: http://$SELENIUM_HOST:$SELENIUM_PORT"
+    # Wait for Selenium Grid to be ready
+    - |
+      echo "Waiting for Selenium Grid to be ready..."
+      for i in {1..30}; do
+        if curl -s http://$SELENIUM_HOST:$SELENIUM_PORT/status > /dev/null; then
+          echo "Selenium Grid is ready!"
+          break
+        fi
+        echo "Waiting... ($i/30)"
+        sleep 2
+      done
+    - curl -s http://$SELENIUM_HOST:$SELENIUM_PORT/status | head -20
+    - mvn clean verify -Dbrowser=firefox -Dremote.browser=http://$SELENIUM_HOST:$SELENIUM_PORT 
+  artifacts:
+    when: always
+    paths:
+      - target/cucumber-reports/
+      - target/surefire-reports/
+      - target/failsafe-reports/
+    reports:
+      junit:
+        - target/surefire-reports/TEST-*.xml
+        - target/failsafe-reports/TEST-*.xml
+    expire_in: 1 week
+  allow_failure: false
+ 
+test-remote-edge:
+  stage: test-remote
+  image: maven:3.9.10-eclipse-temurin-24
+  services:
+    - name: selenium/standalone-edge:latest
+      alias: selenium-edge
+  variables:
+    SELENIUM_HOST: selenium-edge
+    SELENIUM_PORT: 4444
+  script:
+    - echo "Running tests with remote Edge browser via Selenium Grid"
+    - echo "Selenium Grid URL: http://$SELENIUM_HOST:$SELENIUM_PORT"
+    # Wait for Selenium Grid to be ready
+    - |
+      echo "Waiting for Selenium Grid to be ready..."
+      for i in {1..30}; do
+        if curl -s http://$SELENIUM_HOST:$SELENIUM_PORT/status > /dev/null; then
+          echo "Selenium Grid is ready!"
+          break
+        fi
+        echo "Waiting... ($i/30)"
+        sleep 2
+      done
+    - curl -s http://$SELENIUM_HOST:$SELENIUM_PORT/status | head -20
+    - mvn clean verify -Dbrowser=edge -Dremote.browser=http://$SELENIUM_HOST:$SELENIUM_PORT 
+  artifacts:
+    when: always
+    paths:
+      - target/cucumber-reports/
+      - target/surefire-reports/
+      - target/failsafe-reports/
+    reports:
+      junit:
+        - target/surefire-reports/TEST-*.xml
+        - target/failsafe-reports/TEST-*.xml
+    expire_in: 1 week
+  allow_failure: false
+  tags:
+    - docker
