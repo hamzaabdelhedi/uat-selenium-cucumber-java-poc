@@ -1,5 +1,5 @@
 # Base image: Maven + JDK 17 (Debian Bookworm)
-FROM maven:3.9.9-eclipse-temurin-17
+FROM maven:3.9.9-eclipse-temurin-24
 
 ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /usr/src/app
