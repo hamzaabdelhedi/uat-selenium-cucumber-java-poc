@@ -27,6 +27,8 @@
         <remote.browser></remote.browser>
         <!-- Auto provisioned browser in Docker (default: false) -->
         <auto.provisioned.browser>false</auto.provisioned.browser>
+        <!-- Base page URL (optional) -->
+        <login.page.url></login.page.url>
     </properties>
 
     <dependencies>
@@ -100,6 +102,7 @@
                         <browser>${browser}</browser>
                         <remote.browser>${remote.browser}</remote.browser>
                         <auto.provisioned.browser>${auto.provisioned.browser}</auto.provisioned.browser>
+                        <login.page.url>${login.page.url}</login.page.url>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
@@ -122,6 +125,7 @@
                         <browser>${browser}</browser>
                         <remote.browser>${remote.browser}</remote.browser>
                         <auto.provisioned.browser>${auto.provisioned.browser}</auto.provisioned.browser>
+                        <login.page.url>${login.page.url}</login.page.url>
                     </systemPropertyVariables>
                     <includes>
                         <include>**/*IT.java</include>

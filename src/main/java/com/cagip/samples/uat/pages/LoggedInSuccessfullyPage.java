@@ -13,7 +13,7 @@ public class LoggedInSuccessfullyPage extends BasePage {
     @FindBy(css = ".post-title")
     private WebElement pageTitle;
     
-    @FindBy(css = ".post-content p")
+    @FindBy(className = "content")
     private WebElement successMessage;
     
     @FindBy(linkText = "Log out")

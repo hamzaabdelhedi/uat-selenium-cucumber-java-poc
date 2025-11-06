@@ -10,7 +10,11 @@ import org.openqa.selenium.support.FindBy;
  */
 public class LoginPage extends BasePage {
     
-    private static final String LOGIN_PAGE_URL = "https://practicetestautomation.com/practice-test-login/";
+    private static final String DEFAULT_LOGIN_PAGE_URL = "http://localhost:3000/practice-test-login/";
+
+    private static final String LOGIN_PAGE_URL = (System.getProperty("login.page.url") != null && !System.getProperty("login.page.url").isBlank() )
+            ? System.getProperty("login.page.url")
+            : DEFAULT_LOGIN_PAGE_URL;
     
     @FindBy(id = "username")
     private WebElement usernameField;
