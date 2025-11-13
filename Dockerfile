@@ -12,8 +12,9 @@ ENV EDGEDRIVER_VERSION=131.0.2903.112
 RUN apt-get update && \
     apt-get install -y \
         wget curl gnupg ca-certificates apt-transport-https software-properties-common \
-        bzip2 unzip \
+        bzip2 unzip jq \
     && mkdir -p /etc/apt/keyrings && \
+    \
     \
     # ----------------------------------------------------
     # 🧭 Google Chrome
@@ -49,9 +50,14 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 # ----------------------------------------------------
-# 🚗 Install ChromeDriver
+# 🚗 Install ChromeDriver (auto-detect matching version)
 # ----------------------------------------------------
-RUN wget -q https://storage.googleapis.com/chrome-for-testing-public/${CHROMEDRIVER_VERSION}/linux64/chromedriver-linux64.zip -O /tmp/chromedriver.zip && \
+RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+') && \
+    echo "Detected Chrome version: $CHROME_VERSION" && \
+    CHROME_MAJOR_VERSION=$(echo $CHROME_VERSION | cut -d'.' -f1) && \
+    CHROMEDRIVER_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_${CHROME_MAJOR_VERSION}") && \
+    echo "Downloading ChromeDriver version: $CHROMEDRIVER_VERSION" && \
+    wget -q "https://storage.googleapis.com/chrome-for-testing-public/${CHROMEDRIVER_VERSION}/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip && \
     unzip -q /tmp/chromedriver.zip -d /tmp && \
     mv /tmp/chromedriver-linux64/chromedriver /usr/bin/chromedriver && \
     chmod +x /usr/bin/chromedriver && \
@@ -59,18 +65,25 @@ RUN wget -q https://storage.googleapis.com/chrome-for-testing-public/${CHROMEDRI
     chromedriver --version
 
 # ----------------------------------------------------
-# 🦎 Install GeckoDriver (Firefox)
+# 🦎 Install GeckoDriver (auto-detect compatible version)
 # ----------------------------------------------------
-RUN wget -q https://github.com/mozilla/geckodriver/releases/download/v${GECKODRIVER_VERSION}/geckodriver-v${GECKODRIVER_VERSION}-linux64.tar.gz -O /tmp/geckodriver.tar.gz && \
+RUN FIREFOX_VERSION=$(firefox --version | grep -oP '\d+\.\d+') && \
+    echo "Detected Firefox version: $FIREFOX_VERSION" && \
+    GECKODRIVER_VERSION=$(curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | jq -r '.tag_name' | sed 's/v//') && \
+    echo "Downloading GeckoDriver version: $GECKODRIVER_VERSION (latest compatible)" && \
+    wget -q "https://github.com/mozilla/geckodriver/releases/download/v${GECKODRIVER_VERSION}/geckodriver-v${GECKODRIVER_VERSION}-linux64.tar.gz" -O /tmp/geckodriver.tar.gz && \
     tar -xzf /tmp/geckodriver.tar.gz -C /usr/bin && \
     chmod +x /usr/bin/geckodriver && \
     rm /tmp/geckodriver.tar.gz && \
     geckodriver --version
 
 # ----------------------------------------------------
-# 🌊 Install EdgeDriver
+# 🌊 Install EdgeDriver (auto-detect matching version)
 # ----------------------------------------------------
-RUN wget -q https://msedgedriver.microsoft.com/${EDGEDRIVER_VERSION}/edgedriver_linux64.zip -O /tmp/edgedriver.zip && \
+RUN EDGE_VERSION=$(microsoft-edge --version | grep -oP '\d+\.\d+\.\d+\.\d+') && \
+    echo "Detected Edge version: $EDGE_VERSION" && \
+    echo "Downloading EdgeDriver version: $EDGE_VERSION" && \
+    wget -q "https://msedgedriver.microsoft.com/${EDGE_VERSION}/edgedriver_linux64.zip" -O /tmp/edgedriver.zip && \
     unzip -q /tmp/edgedriver.zip -d /tmp && \
     mv /tmp/msedgedriver /usr/bin/msedgedriver && \
     chmod +x /usr/bin/msedgedriver && \
@@ -88,5 +101,6 @@ RUN echo "✅ Installed browsers:" && \
     msedgedriver --version && \
     echo "\n✅ Maven:" && \
     mvn -v
+
 
 CMD ["/bin/bash"]
